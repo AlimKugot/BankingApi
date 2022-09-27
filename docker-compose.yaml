@@ -1,0 +1,31 @@
+version: '3.3'
+services:
+  db:
+    image: postgres:9-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: banking_golang
+      POSTGRES_USER: alim
+      POSTGRES_PASSWORD: qwerty12345
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5438:5432"
+    healthcheck:
+      test: pg_isready -U alim -d banking_golang
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    container_name: migrate_golang
+    volumes:
+      - ./db/migrations:/migrations
+    command:
+      [ "-path", "/migrations", "-database",  "postgres://alim:qwerty12345@db:5432/banking_golang?sslmode=disable", "up"]
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
